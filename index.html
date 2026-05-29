@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地批量文件重命名工具 - 免费在线批量改名，无需上传</title>
+    <meta name="description" content="免费本地批量文件重命名工具，支持添加前缀后缀、字符串替换、序号模板。文件不上传服务器，在浏览器内直接改名，适用于照片、文档批量整理。需 Chrome/Edge 86+。">
+    <meta name="keywords" content="批量重命名,文件重命名,批量改名,本地重命名,在线重命名工具,批量修改文件名,照片批量重命名,无需上传,File System Access API,Chrome重命名">
+    <meta name="author" content="本地文件批量重命名工具">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#1a73e8">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="zh_CN">
+    <meta property="og:title" content="本地批量文件重命名工具 - 免费在线批量改名">
+    <meta property="og:description" content="在浏览器中本地批量重命名文件，不上传、不安装。支持前缀、后缀、替换、序号模板，选文件夹即可预览并执行。">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="本地批量文件重命名工具">
+    <meta name="twitter:description" content="免费本地批量重命名，文件不上传，Chrome/Edge 即可使用。">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "本地批量文件重命名工具",
+        "description": "在浏览器本地批量重命名文件夹内文件，支持前缀、后缀、字符串替换与序号模板，无需上传至服务器。",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Windows, macOS, Linux",
+        "browserRequirements": "Requires Chrome 86+ or Microsoft Edge 86+ with File System Access API",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CNY"
+        },
+        "featureList": [
+            "批量添加文件名前缀",
+            "批量添加文件名后缀",
+            "批量替换文件名中的字符串",
+            "按序号模板批量命名",
+            "按扩展名过滤文件",
+            "重命名前实时预览"
+        ],
+        "inLanguage": "zh-CN"
+    }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            margin-top: 0;
+            font-size: 1.8rem;
+            color: #333;
+        }
+        .note {
+            background: #e8f0fe;
+            border-left: 4px solid #1a73e8;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .flex-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+        .group {
+            flex: 1;
+            min-width: 180px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+        input, select, button {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        button {
+            background: #1a73e8;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #0c5bcc;
+        }
+        button.secondary {
+            background: #5f6368;
+        }
+        button.danger {
+            background: #d93025;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            word-break: break-all;
+        }
+        th {
+            background: #f1f3f4;
+            position: sticky;
+            top: 0;
+        }
+        .preview-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 8px;
+            background: #e9ecef;
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        .folder-path {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #f1f3f4;
+            border: 1px solid #dadce0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #5f6368;
+        }
+        .folder-path-label {
+            font-weight: 600;
+            color: #3c4043;
+            margin-right: 6px;
+        }
+        .folder-path-text {
+            font-family: monospace;
+            color: #1a73e8;
+            word-break: break-all;
+        }
+        .folder-path.empty .folder-path-text {
+            color: #9aa0a6;
+            font-style: italic;
+        }
+        .badge {
+            background: #1e8e3e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        .mode-params {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .mode-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 20px;
+            margin-top: 6px;
+        }
+        .mode-radio {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
+            font-size: 0.9rem;
+            color: #333;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        .mode-radio input {
+            width: auto;
+            margin: 0;
+            cursor: pointer;
+        }
+        .seo-content {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid #e8eaed;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: #3c4043;
+        }
+        .seo-content h2 {
+            font-size: 1.15rem;
+            color: #202124;
+            margin: 0 0 12px;
+        }
+        .seo-content h3 {
+            font-size: 1rem;
+            color: #333;
+            margin: 20px 0 8px;
+        }
+        .seo-content ul, .seo-content ol {
+            margin: 0 0 12px;
+            padding-left: 1.4em;
+        }
+        .seo-content li {
+            margin-bottom: 6px;
+        }
+        .seo-content dl {
+            margin: 0;
+        }
+        .seo-content dt {
+            font-weight: 600;
+            color: #202124;
+            margin-top: 12px;
+        }
+        .seo-content dd {
+            margin: 4px 0 0;
+            color: #5f6368;
+        }
+        .seo-footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #9aa0a6;
+        }
+        @media (max-width: 700px) {
+            .flex-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>📁 本地文件批量重命名工具 <span class="badge">无需上传</span></h1>
+        <p class="note" style="margin-bottom:0;">
+            免费在线批量改名工具，在电脑本地完成文件重命名，适合照片、文档、素材文件夹整理。
+        </p>
+    </header>
+    <main>
+    <div class="note">
+        ⚡ 工作原理：使用浏览器 File System Access API，直接修改你选择的文件夹内的文件名。<br>
+        ✅ 文件不会上传到任何服务器，所有操作在本地完成。<br>
+        ⚠️ 需要 Chrome/Edge 86+ 版本，首次使用需授权文件夹读写权限。重命名不可逆，请提前备份。
+    </div>
+
+    <div class="flex-row">
+        <div class="group" style="flex:2">
+            <button id="selectFolderBtn">📂 选择文件夹并授权</button>
+        </div>
+        <div class="group">
+            <label>扩展名过滤 (例: .jpg .png)</label>
+            <input type="text" id="extFilter" placeholder="留空表示不过滤">
+        </div>
+        <div class="group">
+            <button id="refreshBtn" class="secondary">🔄 刷新列表</button>
+        </div>
+    </div>
+
+    <div class="flex-row" style="align-items: flex-start;">
+        <div class="group" style="flex: 0 0 100%;">
+            <label>重命名模式</label>
+            <div class="mode-options" id="modeOptions">
+                <label class="mode-radio"><input type="radio" name="renameMode" value="prefix" checked> 添加前缀</label>
+                <label class="mode-radio"><input type="radio" name="renameMode" value="suffix"> 添加后缀</label>
+                <label class="mode-radio"><input type="radio" name="renameMode" value="replace"> 替换字符串</label>
+                <label class="mode-radio"><input type="radio" name="renameMode" value="numbered"> 序号模板</label>
+            </div>
+        </div>
+    </div>
+    <div class="flex-row">
+        <div id="paramArea" class="group" style="flex:2">
+            <!-- 动态生成参数输入框 -->
+        </div>
+        <div class="group" style="flex: 0 0 auto; min-width: 140px;">
+            <label>&nbsp;</label>
+            <button id="executeBtn" class="danger">✏️ 执行重命名</button>
+        </div>
+    </div>
+
+    <div class="preview-container">
+        <table id="previewTable">
+            <thead>
+                <tr><th>原文件名</th><th>新文件名</th></tr>
+            </thead>
+            <tbody id="previewBody">
+                <tr><td colspan="2">请先选择文件夹</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="status" class="status">就绪</div>
+    <div id="folderPath" class="folder-path empty">
+        <span class="folder-path-label">当前路径：</span>
+        <span id="folderPathText" class="folder-path-text">未选择文件夹</span>
+    </div>
+    </main>
+
+    <section class="seo-content" id="about">
+        <h2>关于本工具</h2>
+        <p>
+            这是一款<strong>本地批量文件重命名</strong>网页工具。你选择的文件始终保留在自有设备上，
+            不会上传到任何服务器。通过浏览器 File System Access API 直接修改文件夹内的文件名，
+            适合需要<strong>批量改名</strong>、<strong>批量加前缀后缀</strong>或<strong>按序号重命名</strong>的场景，
+            例如相机照片、下载素材、项目文档等。
+        </p>
+
+        <h2>主要功能</h2>
+        <ul>
+            <li><strong>添加前缀</strong>：为文件夹内所有文件统一加上名称前缀。</li>
+            <li><strong>添加后缀</strong>：在扩展名前插入后缀，便于区分版本或批次。</li>
+            <li><strong>替换字符串</strong>：批量查找并替换文件名中的指定文字。</li>
+            <li><strong>序号模板</strong>：按 <code>file_{num:03d}{ext}</code> 等模板生成连续编号文件名。</li>
+            <li><strong>扩展名过滤</strong>：仅处理 .jpg、.png、.pdf 等指定类型，避免误改其他文件。</li>
+            <li><strong>实时预览</strong>：选择文件夹后自动列出原文件名与新文件名对照，确认后再执行。</li>
+        </ul>
+
+        <h2>使用步骤</h2>
+        <ol>
+            <li>使用 Chrome 或 Edge 86 及以上版本打开本页面。</li>
+            <li>点击「选择文件夹并授权」，授予该文件夹的读写权限。</li>
+            <li>选择重命名模式并填写参数，在预览表中核对新文件名。</li>
+            <li>确认无误后点击「执行重命名」；操作不可撤销，建议先备份重要文件。</li>
+        </ol>
+
+        <h2>常见问题</h2>
+        <dl>
+            <dt>文件会上传到网站吗？</dt>
+            <dd>不会。所有读写均在本地浏览器内完成，本工具不收集、不传输你的文件内容。</dd>
+            <dt>支持哪些浏览器？</dt>
+            <dd>推荐使用 Chrome、Microsoft Edge 86+ 等支持 File System Access API 的 Chromium 内核浏览器。</dd>
+            <dt>可以重命名子文件夹里的文件吗？</dt>
+            <dd>当前版本仅处理所选文件夹根目录下的文件，不包含子目录中的文件。</dd>
+            <dt>重命名失败常见原因？</dt>
+            <dd>目标文件名已存在、新名称含非法字符，或文件被其他程序占用。请根据状态栏提示排查。</dd>
+            <dt>与安装版重命名软件有何区别？</dt>
+            <dd>无需安装，打开网页即可使用；但需浏览器授权，且依赖现代浏览器 API，功能聚焦于单文件夹批量改名。</dd>
+        </dl>
+
+        <p class="seo-footer">
+            关键词：批量重命名、文件批量改名、本地重命名工具、在线批量修改文件名、照片批量重命名、免费重命名工具。
+        </p>
+    </section>
+</div>
+
+<script>
+    // ---------- DOM 元素 ----------
+    const selectFolderBtn = document.getElementById('selectFolderBtn');
+    const extFilterInput = document.getElementById('extFilter');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const paramArea = document.getElementById('paramArea');
+    const executeBtn = document.getElementById('executeBtn');
+    const previewBody = document.getElementById('previewBody');
+    const statusDiv = document.getElementById('status');
+    const folderPathDiv = document.getElementById('folderPath');
+    const folderPathText = document.getElementById('folderPathText');
+
+    // 状态变量
+    let directoryHandle = null;          // 用户授权的目录句柄
+    let selectedFolderLabel = '';        // 用于底部展示的路径/文件夹名
+    let currentFiles = [];               // 存储 { name, handle, relativePath? 直接用 name }
+    let previewList = [];                // 存储 { oldName, newName, handle }
+
+    // ---------- 辅助函数 ----------
+    function getMode() {
+        const checked = document.querySelector('input[name="renameMode"]:checked');
+        return checked ? checked.value : 'prefix';
+    }
+
+    function setStatus(msg, isError = false) {
+        statusDiv.innerText = msg;
+        statusDiv.style.color = isError ? '#d93025' : '#1e8e3e';
+        if (!isError) {
+            setTimeout(() => { if(statusDiv.innerText === msg) statusDiv.style.color = ''; }, 3000);
+        }
+    }
+
+    function updateFolderPathDisplay(label) {
+        selectedFolderLabel = label || '';
+        if (!selectedFolderLabel) {
+            folderPathText.textContent = '未选择文件夹';
+            folderPathDiv.classList.add('empty');
+        } else {
+            folderPathText.textContent = selectedFolderLabel;
+            folderPathDiv.classList.remove('empty');
+        }
+    }
+
+    // 检查 File System Access API 是否可用
+    if (!('showDirectoryPicker' in window)) {
+        setStatus('❌ 您的浏览器不支持 File System Access API，请使用 Chrome/Edge 86 以上版本。', true);
+        selectFolderBtn.disabled = true;
+        refreshBtn.disabled = true;
+        executeBtn.disabled = true;
+    }
+
+    // 选择文件夹并请求读写权限
+    async function selectFolder() {
+        try {
+            const handle = await window.showDirectoryPicker();
+            // 请求读写权限
+            const permission = await handle.requestPermission({ mode: 'readwrite' });
+            if (permission !== 'granted') {
+                setStatus('需要读写权限才能重命名文件', true);
+                return;
+            }
+            directoryHandle = handle;
+            updateFolderPathDisplay(handle.name);
+            setStatus(`已授权文件夹: ${handle.name}，正在读取文件列表...`);
+            await loadFilesFromDirectory();
+            await generatePreview();
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                setStatus(`选择文件夹失败: ${err.message}`, true);
+            } else {
+                setStatus('已取消选择', false);
+            }
+        }
+    }
+
+    // 从目录句柄加载文件 (仅文件，不递归子目录)
+    async function loadFilesFromDirectory() {
+        if (!directoryHandle) {
+            setStatus('请先选择文件夹', true);
+            return [];
+        }
+        const extFilter = extFilterInput.value.trim();
+        const extensions = extFilter ? extFilter.split(/[\s,]+/).map(s => s.trim().toLowerCase()).filter(s => s) : [];
+        
+        const files = [];
+        try {
+            for await (const entry of directoryHandle.values()) {
+                if (entry.kind === 'file') {
+                    const name = entry.name;
+                    const ext = name.includes('.') ? '.' + name.split('.').pop().toLowerCase() : '';
+                    if (extensions.length > 0 && !extensions.includes(ext)) {
+                        continue;
+                    }
+                    files.push({
+                        name: name,
+                        handle: entry,
+                    });
+                }
+            }
+            // 按名称排序
+            files.sort((a,b) => a.name.localeCompare(b.name));
+            currentFiles = files;
+            setStatus(`找到 ${files.length} 个文件 (已应用扩展名过滤)`);
+            return files;
+        } catch (err) {
+            setStatus(`读取目录失败: ${err.message}`, true);
+            return [];
+        }
+    }
+
+    // 动态生成参数输入控件
+    function buildParamInputs() {
+        const mode = getMode();
+        let html = '';
+        if (mode === 'prefix') {
+            html = `<label>前缀内容</label><input type="text" id="prefixVal" placeholder="例如: new_">`;
+        } else if (mode === 'suffix') {
+            html = `<label>后缀内容 (加在扩展名前)</label><input type="text" id="suffixVal" placeholder="例如: _backup">`;
+        } else if (mode === 'replace') {
+            html = `<div style="display:flex; gap:8px;"><div style="flex:1"><label>查找</label><input type="text" id="replaceOld" placeholder="要替换的字符串"></div>
+                    <div style="flex:1"><label>替换为</label><input type="text" id="replaceNew" placeholder="新字符串"></div></div>`;
+        } else if (mode === 'numbered') {
+            html = `<label>序号模板 (支持 {num} {ext})</label>
+                    <input type="text" id="numberedTemplate" value="file_{num:03d}{ext}" placeholder="例: img_{num:03d}{ext} → img_001.jpg">
+                    <div style="font-size:0.75rem; margin-top:4px;">{num} 自动编号(从1开始)，{ext} 包含点号的扩展名</div>`;
+        }
+        paramArea.innerHTML = html;
+    }
+
+    // 根据模式和参数计算新文件名 (原文件名, index序号)
+    function generateNewName(oldName, idx) {
+        const mode = getMode();
+        if (mode === 'prefix') {
+            const prefix = document.getElementById('prefixVal')?.value || '';
+            return prefix + oldName;
+        } else if (mode === 'suffix') {
+            const suffix = document.getElementById('suffixVal')?.value || '';
+            const lastDot = oldName.lastIndexOf('.');
+            if (lastDot === -1) return oldName + suffix;
+            return oldName.substring(0, lastDot) + suffix + oldName.substring(lastDot);
+        } else if (mode === 'replace') {
+            const oldStr = document.getElementById('replaceOld')?.value || '';
+            const newStr = document.getElementById('replaceNew')?.value || '';
+            if (!oldStr) return oldName;
+            return oldName.split(oldStr).join(newStr);
+        } else if (mode === 'numbered') {
+            const template = document.getElementById('numberedTemplate')?.value || 'file_{num:03d}{ext}';
+            const lastDot = oldName.lastIndexOf('.');
+            const ext = lastDot !== -1 ? oldName.substring(lastDot) : '';
+            let newName = template.replace(/{ext}/g, ext).replace(/{num}/g, idx);
+            // 支持格式化 {num:03d} 类似 python，简单处理：将 {num:xxx} 替换为格式化数字
+            const numRegex = /\{num:([^}]+)\}/;
+            const match = template.match(numRegex);
+            if (match) {
+                const formatStr = match[1]; // 例如 03d
+                let formatted = idx.toString();
+                if (formatStr.endsWith('d')) {
+                    const width = parseInt(formatStr, 10);
+                    if (!isNaN(width)) formatted = idx.toString().padStart(width, '0');
+                }
+                newName = template.replace(numRegex, formatted).replace(/{ext}/g, ext);
+            }
+            return newName;
+        }
+        return oldName;
+    }
+
+    // 生成预览 (需要当前文件列表)
+    async function generatePreview() {
+        if (!directoryHandle) {
+            setStatus('请先选择文件夹', true);
+            return false;
+        }
+        if (currentFiles.length === 0) {
+            await loadFilesFromDirectory();
+            if (currentFiles.length === 0) {
+                previewBody.innerHTML = '<tr><td colspan="2">没有符合条件的文件</td></tr>';
+                setStatus('没有文件可重命名', false);
+                return false;
+            }
+        }
+        const files = currentFiles;
+        const preview = [];
+        for (let i = 0; i < files.length; i++) {
+            const newName = generateNewName(files[i].name, i+1);
+            preview.push({
+                oldName: files[i].name,
+                newName: newName,
+                handle: files[i].handle
+            });
+        }
+        previewList = preview;
+        renderPreviewTable(preview);
+        setStatus(`预览完成，共 ${preview.length} 项`);
+        return true;
+    }
+
+    function renderPreviewTable(preview) {
+        if (!preview.length) {
+            previewBody.innerHTML = '<tr><td colspan="2">无预览数据</td></tr>';
+            return;
+        }
+        let html = '';
+        for (const item of preview) {
+            const changed = (item.oldName !== item.newName);
+            const style = changed ? '' : 'style="color:#888;"';
+            html += `<tr>
+                        <td ${style}>${escapeHtml(item.oldName)}</td>
+                        <td ${style}>${escapeHtml(item.newName)} ${!changed ? '(未改变)' : ''}</td>
+                     </tr>`;
+        }
+        previewBody.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // 执行重命名（实际修改文件）
+    async function executeRename() {
+        if (!directoryHandle) {
+            setStatus('请先选择文件夹', true);
+            return;
+        }
+        if (!previewList.length) {
+            setStatus('没有预览数据，请先选择文件夹', true);
+            return;
+        }
+        // 过滤出真正需要改名的
+        const toRename = previewList.filter(p => p.oldName !== p.newName);
+        if (toRename.length === 0) {
+            setStatus('没有需要重命名的文件', false);
+            return;
+        }
+        // 二次确认
+        const confirmMsg = `即将重命名 ${toRename.length} 个文件。\n此操作不可撤销，是否继续？`;
+        if (!confirm(confirmMsg)) return;
+
+        let success = 0;
+        let fail = 0;
+        for (const item of toRename) {
+            try {
+                // 通过目录句柄获取原文件句柄，然后使用 move 方法重命名（移动并改名）
+                const oldFileHandle = item.handle;
+                // 新文件名不能包含路径分隔符
+                const newName = item.newName;
+                if (!newName || newName.includes('/') || newName.includes('\\')) {
+                    throw new Error('新文件名包含非法字符');
+                }
+                // 检查目标是否已存在
+                let targetExists = false;
+                try {
+                    await directoryHandle.getFileHandle(newName);
+                    targetExists = true;
+                } catch (e) { /* 不存在 */ }
+                if (targetExists) {
+                    throw new Error(`目标文件 "${newName}" 已存在，跳过`);
+                }
+                // 执行重命名: 使用 move 方法，注意旧句柄的 move 可重命名同目录下文件
+                await oldFileHandle.move(newName);
+                success++;
+                setStatus(`已重命名: ${item.oldName} → ${newName}`, false);
+            } catch (err) {
+                fail++;
+                console.error(`重命名失败 ${item.oldName}:`, err);
+                setStatus(`重命名失败: ${item.oldName} - ${err.message}`, true);
+                // 继续尝试其他文件
+            }
+        }
+        // 刷新文件列表和预览
+        await loadFilesFromDirectory();
+        await generatePreview();
+        setStatus(`执行完成: 成功 ${success} 个，失败 ${fail} 个`, fail > 0);
+    }
+
+    // 刷新文件列表并重置预览
+    async function refreshAndPreview() {
+        if (!directoryHandle) {
+            setStatus('请先选择文件夹', true);
+            return;
+        }
+        await loadFilesFromDirectory();
+        await generatePreview();
+    }
+
+    // 监听模式切换重建参数并自动预览
+    function onModeChange() {
+        buildParamInputs();
+        if (directoryHandle && currentFiles.length) {
+            generatePreview();
+        }
+    }
+
+    // 事件绑定
+    selectFolderBtn.addEventListener('click', selectFolder);
+    refreshBtn.addEventListener('click', refreshAndPreview);
+    document.querySelectorAll('input[name="renameMode"]').forEach(radio => {
+        radio.addEventListener('change', onModeChange);
+    });
+    executeBtn.addEventListener('click', executeRename);
+
+    // 初始化参数界面
+    buildParamInputs();
+    // 如果扩展名输入框变化，自动刷新列表和预览 (防抖)
+    let debounceTimer;
+    extFilterInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            if (directoryHandle) refreshAndPreview();
+        }, 500);
+    });
+    // 参数输入变化时自动刷新预览（通过事件委托）
+    paramArea.addEventListener('input', (e) => {
+        if (directoryHandle && currentFiles.length) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => generatePreview(), 300);
+        }
+    });
+</script>
+</body>
+</html>
